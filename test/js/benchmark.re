@@ -119,7 +119,31 @@ let andThen = Framework.suite("andThen", [
 
 
 
-let suites = [resolved, andThen];
+let race = Framework.suite("race", [
+  test("race", () => {
+    let _ps = [Repromise.resolved(), Repromise.resolved(), Repromise.resolved(), Repromise.resolved(), Repromise.resolved(), Repromise.resolved(), Repromise.resolved(), Repromise.resolved()];
+    let _ps' = [|Js.Promise.resolve(), Js.Promise.resolve(), Js.Promise.resolve(), Js.Promise.resolve(), Js.Promise.resolve(), Js.Promise.resolve(), Js.Promise.resolve(), Js.Promise.resolve()|];
+    let repetitions = 1_000_00;
+
+    let start_time = hrtime();
+
+    for (_ in 1 to repetitions) {
+      Js.Promise.race(_ps')
+      /* Repromise.race(_ps) */
+      |> ignore
+    };
+
+    let elapsed = hrtime() -. start_time;
+    let nanoseconds = elapsed /. float_of_int(repetitions) *. 1e9;
+    Printf.printf("%s   %f\n", "race", nanoseconds);
+
+    Repromise.resolved(true);
+  })
+]);
+
+
+
+let suites = [race];
 
 let () =
   Framework.run("benchmark", suites);
